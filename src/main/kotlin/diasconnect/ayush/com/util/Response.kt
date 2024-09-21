@@ -4,16 +4,7 @@ import io.ktor.http.*
 
 // Generic class to handle response
 // from the repository
-sealed class Response<T>(
-    val code: HttpStatusCode = HttpStatusCode.OK,
-    val data: T
-){
-    class Success<T>(data: T): Response<T>(data = data)
-
-    class Error<T>(
-        code: HttpStatusCode,
-        data: T
-    ): Response<T>(
-        code, data
-    )
+sealed class Response<T> {
+    data class Success<T>(val data: T) : Response<T>()
+    data class Error<T>(val message: String, val data: T? = null) : Response<T>()
 }

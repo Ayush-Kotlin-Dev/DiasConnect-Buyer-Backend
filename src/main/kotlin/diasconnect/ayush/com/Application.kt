@@ -3,6 +3,7 @@ package diasconnect.ayush.com
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
+import diasconnect.ayush.com.dao.DatabaseFactory
 import diasconnect.ayush.com.di.configureDI
 import diasconnect.ayush.com.plugins.*
 import diasconnect.ayush.com.util.GraphqlConfig

@@ -1,9 +1,9 @@
-package diasconnect.ayush.com
+package diasconnect.ayush.com.dao
 
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import diasconnect.ayush.com.graphql.UserTable
+import diasconnect.ayush.com.dao.user.UserTable
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -23,7 +23,7 @@ object DatabaseFactory {
 
     private fun createHikariDataSource(): HikariDataSource {
         val driverClass = "org.postgresql.Driver"
-        val databaseUri = URI(System.getenv("DATABASE_URL"))
+        val databaseUri = URI(System.getenv("DATABASE_URL_ECOM"))
 
         val port = if (databaseUri.port != -1) databaseUri.port else 5432
         val jdbcUrl = "jdbc:postgresql://" + databaseUri.host + ':' + port + databaseUri.path
