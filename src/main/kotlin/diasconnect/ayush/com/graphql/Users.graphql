@@ -1,0 +1,15 @@
+type User {
+    id: String!
+    name: String!
+    bio: String!
+    email: String!
+    imageUrl: String
+    followersCount: Int!
+    followingCount: Int!
+    isFollowing: Boolean!
+    isOwnProfile: Boolean!
+}
+
+type Query {
+    getUser(name: String!): User
+}

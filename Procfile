@@ -1,0 +1,1 @@
+web :build/install/diasconnect.ayush.com/bin/diasconnect.ayush.com
