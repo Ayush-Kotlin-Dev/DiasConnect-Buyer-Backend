@@ -10,6 +10,7 @@ import diasconnect.ayush.com.util.GraphqlConfig
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import java.io.FileInputStream
 import java.io.IOException
 
 fun main() {
@@ -26,11 +27,11 @@ fun Application.module() {
     GraphqlConfig()
     this.configureCORS()
 
-//    val serviceAccountPath = "/etc/secrets/service_account_key.json"
+    val serviceAccountPath = "/etc/secrets/service_account_key.json"
     try {
 
-//        val serviceAccountStream = FileInputStream(serviceAccountPath)
-        val serviceAccountStream = this::class.java.classLoader.getResourceAsStream("service-account.json")
+        val serviceAccountStream = FileInputStream(serviceAccountPath)
+//        val serviceAccountStream = this::class.java.classLoader.getResourceAsStream("service-account.json")
         val options = FirebaseOptions.builder()
             .setCredentials(GoogleCredentials.fromStream(serviceAccountStream))
             .setStorageBucket("theinstau-3b0cc.appspot.com")
