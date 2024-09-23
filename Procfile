@@ -1,1 +1,1 @@
-web :build/install/diasconnect.ayush.com/bin/diasconnect.ayush.com
+web :build/install/diasconnect.buyer.com/bin/diasconnect.buyer.com

@@ -14,11 +14,11 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.23"
 }
 
-group = "diasconnect.ayush.com"
+group = "diasconnect.buyer.com"
 version = "0.0.1"
 
 application {
-    mainClass.set("instau.ayush.com.ApplicationKt")
+    mainClass.set("instau.buyer.com.ApplicationKt")
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
@@ -79,7 +79,7 @@ tasks.register<Jar>("fatJar") {
     from(configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) })
     exclude("META-INF/*.RSA", "META-INF/*.SF", "META-INF/*.DSA")
     manifest {
-        attributes["Main-Class"] = "diasconnect.ayush.com.ApplicationKt"
+        attributes["Main-Class"] = "diasconnect.buyer.com.ApplicationKt"
     }
     from(*configurations.runtimeClasspath.get().filter { it.exists() }
         .map { if (it.isDirectory) it else zipTree(it) }.toTypedArray())
