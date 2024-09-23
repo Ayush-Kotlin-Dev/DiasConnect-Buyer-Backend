@@ -1,6 +1,6 @@
-package diasconnect.ayush.com
+package diasconnect.buyer.com
 
-import diasconnect.ayush.com.plugins.*
+import diasconnect.buyer.com.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
