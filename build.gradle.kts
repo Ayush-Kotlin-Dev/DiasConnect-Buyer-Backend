@@ -68,6 +68,7 @@ dependencies {
     implementation("com.expediagroup:graphql-kotlin-ktor-server:7.0.0")
     implementation("com.expediagroup:graphql-kotlin-schema-generator:8.0.0")
     implementation("com.graphql-java:graphql-java:22.3")
+    implementation("io.ktor:ktor-server-html-builder:$ktor_version")
 
 }
 tasks.withType<org.gradle.jvm.tasks.Jar>() {

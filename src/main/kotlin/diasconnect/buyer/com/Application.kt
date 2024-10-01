@@ -25,6 +25,7 @@ fun Application.module() {
     configureSockets()
     GraphqlConfig()
     this.configureCORS()
+    configureRouting()
 
 //    val serviceAccountPath = "/etc/secrets/service_account_key.json"
 //    try {
