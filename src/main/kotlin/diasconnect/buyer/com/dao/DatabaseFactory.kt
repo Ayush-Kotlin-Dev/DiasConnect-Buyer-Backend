@@ -3,6 +3,8 @@ package diasconnect.buyer.com.dao
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import diasconnect.buyer.com.dao.cart.CartItemsTable
+import diasconnect.buyer.com.dao.cart.CartTable
 import diasconnect.buyer.com.dao.user.UserTable
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.Database
@@ -17,6 +19,8 @@ object DatabaseFactory {
         transaction {
             SchemaUtils.create(
                 UserTable,
+                CartTable,
+                CartItemsTable
             )
         }
     }
