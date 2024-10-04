@@ -18,15 +18,13 @@ import org.koin.dsl.module
 
 val appModule = module {
 
-
     single <UserDao>{ UserDaoImpl() }
     single  <AuthRepository>{ AuthRepositoryImpl(get()) }
     single<BuyerProductDao> { BuyerProductDaoImpl() }
     single<BuyerProductRepository> { BuyerProductRepositoryImpl(get()) }
     single { ProductQuery(get()) }
     single < CartDao>{ CartDaoImpl() }
-    single <CartRepository>{ CartRepositoryImpl(get(), get()) }
+    single <CartRepository>{ CartRepositoryImpl(get()) }
     single { CartQuery(get()) }
-
 
 }

@@ -3,7 +3,7 @@ package diasconnect.buyer.com.dao
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import diasconnect.buyer.com.dao.cart.CartItemsTable
+import diasconnect.buyer.com.dao.cart.CartItemTable
 import diasconnect.buyer.com.dao.cart.CartTable
 import diasconnect.buyer.com.dao.user.UserTable
 import kotlinx.coroutines.Dispatchers
@@ -20,7 +20,7 @@ object DatabaseFactory {
             SchemaUtils.create(
                 UserTable,
                 CartTable,
-                CartItemsTable
+                CartItemTable
             )
         }
     }
