@@ -2,13 +2,18 @@ package diasconnect.buyer.com.dao.cart
 
 import diasconnect.buyer.com.dao.DatabaseFactory.dbQuery
 import diasconnect.buyer.com.model.*
-import diasconnect.buyer.com.util.CurrentDateTime
-import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.times
+import org.jetbrains.exposed.sql.sum
+import diasconnect.buyer.com.util.CurrentDateTime
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
+import java.math.RoundingMode
+import org.jetbrains.exposed.sql.sum
+import org.jetbrains.exposed.sql.transactions.transaction
+import java.lang.Float.sum
 
 class CartDaoImpl : CartDao {
     private val logger = LoggerFactory.getLogger(CartDaoImpl::class.java)
@@ -58,37 +63,56 @@ class CartDaoImpl : CartDao {
             .singleOrNull()?.let { toCart(it) }
     }
 
+
     override suspend fun addItemToCart(
         cartId: Long,
         productId: Long,
         quantity: Int,
         price: BigDecimal
     ): Long = dbQuery {
-        val existingItem = CartItemTable.select {
-            (CartItemTable.cartId eq cartId) and (CartItemTable.productId eq productId)
-        }.singleOrNull()
+        try {
+            val now = CurrentDateTime()
+            dbQuery {
+                // Check if the cart exists and is active
+                val cart = CartTable.select { CartTable.id eq cartId }.singleOrNull()
+                if (cart == null || cart[CartTable.status] != CartStatus.ACTIVE) {
+                    logger.warn("Cart is not active or does not exist: cartId=$cartId")
+                    throw Exception("Cart is not active or does not exist")
+                }
 
-        val cartItemId = if (existingItem != null) {
-            CartItemTable.update({ CartItemTable.id eq existingItem[CartItemTable.id] }) {
-                it[CartItemTable.quantity] = existingItem[CartItemTable.quantity] + quantity
-                it[CartItemTable.price] = price
-                it[updatedAt] = CurrentDateTime()
+                // Check if the item already exists in the cart
+                val existingItem = CartItemTable.select {
+                    (CartItemTable.cartId eq cartId) and (CartItemTable.productId eq productId)
+                }.singleOrNull()
+
+                if (existingItem != null) {
+                    // Update quantity
+                    val newQuantity = existingItem[CartItemTable.quantity] + quantity
+                    CartItemTable.update({ CartItemTable.id eq existingItem[CartItemTable.id] }) {
+                        it[CartItemTable.quantity] = newQuantity
+                        it[updatedAt] = now
+                    }
+                    logger.info("Updated quantity for cart item: cartItemId=${existingItem[CartItemTable.id]}")
+                } else {
+                    // Add new item
+                    CartItemTable.insert {
+                        it[CartItemTable.cartId] = cartId
+                        it[CartItemTable.productId] = productId
+                        it[CartItemTable.quantity] = quantity
+                        it[CartItemTable.price] = price
+                        it[createdAt] = now
+                        it[updatedAt] = now
+                    }
+                    logger.info("Inserted new item to cart: cartId=$cartId, productId=$productId")
+                }
+                updateCartTotal(cartId)
             }
-            existingItem[CartItemTable.id]
-        } else {
-            CartItemTable.insert {
-                it[CartItemTable.cartId] = cartId
-                it[CartItemTable.productId] = productId
-                it[CartItemTable.quantity] = quantity
-                it[CartItemTable.price] = price
-                it[createdAt] = CurrentDateTime()
-                it[updatedAt] = CurrentDateTime()
-            } get CartItemTable.id
+
+            cartId // Return cart ID as success indicator
+        } catch (e: Exception) {
+            logger.error("Error adding item to cart: cartId=$cartId, productId=$productId", e)
+            -1L // Indicate failure with a negative value
         }
-
-        updateCartTotal(cartId)
-        cartItemId
-
     }
 
     override suspend fun updateCartItemQuantity(cartItemId: Long, quantity: Int): Boolean = dbQuery {
@@ -143,23 +167,22 @@ class CartDaoImpl : CartDao {
             .singleOrNull()?.let { toCartItem(it) }
     }
 
-    private suspend fun updateCartTotal(cartId: Long) = dbQuery {
+    private fun updateCartTotal(cartId: Long) {
+        val now = CurrentDateTime()
+
         val total = CartItemTable
-            .slice(Expression.build {
-                (CartItemTable.price.castTo<BigDecimal>(DecimalColumnType(10, 2)) *
-                        CartItemTable.quantity.castTo<BigDecimal>(DecimalColumnType(10, 2))).sum()
-            })
+            .slice((CartItemTable.price * CartItemTable.quantity.castTo<BigDecimal>(DecimalColumnType(10, 2))).sum())
             .select { CartItemTable.cartId eq cartId }
             .singleOrNull()
-            ?.get(Expression.build {
-                (CartItemTable.price.castTo<BigDecimal>(DecimalColumnType(10, 2)) *
-                        CartItemTable.quantity.castTo<BigDecimal>(DecimalColumnType(10, 2))).sum()
-            }) ?: BigDecimal.ZERO
+            ?.get((CartItemTable.price * CartItemTable.quantity.castTo<BigDecimal>(DecimalColumnType(10, 2))).sum())
+            ?: BigDecimal.ZERO
 
         CartTable.update({ CartTable.id eq cartId }) {
-            it[CartTable.total] = total
-            it[updatedAt] = CurrentDateTime()
+            it[CartTable.total] = total.setScale(2, RoundingMode.HALF_UP)
+            it[updatedAt] = now
         }
+
+        logger.info("Updated cart total for cartId=$cartId to $total")
     }
 
     private suspend fun toCart(row: ResultRow): Cart {
