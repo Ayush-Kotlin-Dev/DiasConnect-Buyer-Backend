@@ -2,6 +2,7 @@ package diasconnect.buyer.com.dao.cart
 
 import diasconnect.buyer.com.util.CurrentDateTime
 import diasconnect.buyer.com.dao.product.ProductsTable
+import diasconnect.buyer.com.dao.user.UserTable
 import io.ktor.client.utils.EmptyContent.status
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.datetime
@@ -9,7 +10,7 @@ import java.math.BigDecimal
 
 object CartTable : Table("carts") {
     val id = long("id").autoIncrement()
-    val userId = long("user_id")
+    val userId = long("user_id").references(UserTable.id)
     val status = enumerationByName("status", 20, CartStatus::class)
     val total = float("total")
     val currency = varchar("currency", 3).default("USD")

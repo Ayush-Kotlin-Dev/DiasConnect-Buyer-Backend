@@ -1,5 +1,6 @@
 package diasconnect.buyer.com.repository.auth
 
+import diasconnect.buyer.com.dao.cart.CartDao
 import diasconnect.buyer.com.dao.user.UserDao
 import diasconnect.buyer.com.dao.user.UserRow
 import diasconnect.buyer.com.model.AuthResponse
@@ -10,7 +11,8 @@ import diasconnect.buyer.com.plugins.generateToken
 import diasconnect.buyer.com.security.hashPassword
 
 class AuthRepositoryImpl(
-    private val userDao: UserDao
+    private val userDao: UserDao,
+    private val cartDao: CartDao
 ) : AuthRepository {
     override suspend fun signUp(params: SignUpParams): AuthResponse {
         if (userAlreadyExists(params.email)) {
@@ -20,6 +22,8 @@ class AuthRepositoryImpl(
         val createdUser = userDao.createUser(params.name, params.email, params.password)
             ?: throw IllegalStateException("Failed to create user")
 
+        val createdCart = cartDao.createCart(createdUser.id)
+            //TODO return cart id in response to be used in the frontend
         val token = generateToken(createdUser.email)
 
         return AuthResponse(
