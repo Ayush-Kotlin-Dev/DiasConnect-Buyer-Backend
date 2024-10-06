@@ -16,9 +16,21 @@ import java.math.BigDecimal
 class CartDaoImpl : CartDao {
     private val logger = LoggerFactory.getLogger(CartDaoImpl::class.java)
 
-    override suspend fun createCart(userId: Long): Long = dbQuery {
-        logger.info("Creating cart in DAO for user: $userId")
+    override suspend fun createOrGetCart(userId: Long): Long = dbQuery {
+        logger.info("Checking for existing cart or creating new cart for user: $userId")
+        val existingCartId = CartTable
+            .slice(CartTable.id)
+            .select { (CartTable.userId eq userId) and (CartTable.status eq CartStatus.ACTIVE) }
+            .singleOrNull()?.get(CartTable.id)
+
+        if (existingCartId != null) {
+            logger.info("Existing active cart found for user: $userId. Cart ID: $existingCartId")
+            return@dbQuery existingCartId
+        }
+
+        logger.info("No existing active cart found. Creating new cart for user: $userId")
         try {
+
             val now = CurrentDateTime()
             val cartId = CartTable.insert {
                 it[CartTable.id] = IdGenerator.generateId()
@@ -34,21 +46,8 @@ class CartDaoImpl : CartDao {
             logger.info("Inserted cart with ID: $cartId for user: $userId")
             cartId
         } catch (e: ExposedSQLException) {
-            if (e.message?.contains("UNIQUE constraint failed") == true) {
-                logger.info("Cart already exists for user: $userId. Retrieving existing cart ID.")
-                val existingCartId = CartTable
-                    .slice(CartTable.id)
-                    .select { (CartTable.userId eq userId) and (CartTable.status eq CartStatus.ACTIVE) }
-                    .singleOrNull()?.get(CartTable.id)
-                if (existingCartId == null) {
-                    logger.error("Failed to retrieve existing active cart ID for user: $userId")
-                    throw RuntimeException("Failed to retrieve existing active cart ID")
-                }
-                existingCartId
-            } else {
-                logger.error("Error creating cart for user: $userId", e)
-                throw e
-            }
+            logger.error("Error creating cart for user: $userId", e)
+            -1L // Indicate failure with a negative value
         }
     }
 

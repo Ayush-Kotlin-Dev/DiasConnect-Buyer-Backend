@@ -19,6 +19,7 @@ import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
 import com.expediagroup.graphql.generator.hooks.SchemaGeneratorHooks
+import diasconnect.buyer.com.graphql.scalars.GraphQLLong
 import diasconnect.buyer.com.graphql.scalars.LongScalar
 import graphql.schema.GraphQLType
 import kotlin.reflect.KType
@@ -28,7 +29,7 @@ import kotlin.reflect.KType
 class CustomSchemaGeneratorHooks : SchemaGeneratorHooks {
     override fun willGenerateGraphQLType(type: KType): GraphQLType? {
         return when (type.classifier) {
-            Long::class -> LongScalar
+            Long::class -> GraphQLLong
             else -> null
         }
     }

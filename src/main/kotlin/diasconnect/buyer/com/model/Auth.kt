@@ -38,6 +38,7 @@ data class AuthResponseData(
     val token: String,
     val created: String,
     val updated: String,
+    val cartId: String
 
 
 )

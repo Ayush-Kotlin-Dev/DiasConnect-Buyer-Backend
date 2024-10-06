@@ -32,7 +32,7 @@ class CartMutation(private val cartRepository: CartRepository) : Mutation {
     suspend fun createOrGetCart( userId: Long): Long {
         logger.info("Attempting to create or get cart for user: $userId")
         try {
-            val cartId = cartRepository.createCart(userId)
+            val cartId = cartRepository.createOrGetCart(userId)
             logger.info("Successfully created/retrieved cart ID: $cartId for user: $userId")
             return cartId
         } catch (e: Exception) {

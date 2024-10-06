@@ -5,7 +5,7 @@ import diasconnect.buyer.com.model.CartItem
 import java.math.BigDecimal
 
 interface CartDao {
-    suspend fun createCart(userId: Long): Long
+    suspend fun createOrGetCart(userId: Long): Long
     suspend fun getActiveCartByUserId(userId: Long): Cart?
     suspend fun getCartById(cartId: Long): Cart?
     suspend fun addItemToCart(cartId: Long, productId: Long, quantity: Int, price: Float): Long

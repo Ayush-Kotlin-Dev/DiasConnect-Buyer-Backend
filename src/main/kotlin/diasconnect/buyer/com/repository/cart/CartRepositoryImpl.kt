@@ -11,8 +11,8 @@ class CartRepositoryImpl(
     private val cartDao: CartDao
 ) : CartRepository {
 
-    override suspend fun createCart(userId: Long): Long {
-        return cartDao.createCart(userId)
+    override suspend fun createOrGetCart(userId: Long): Long {
+        return cartDao.createOrGetCart(userId)
     }
 
     override suspend fun getActiveCartByUserId(userId: Long): Cart? {

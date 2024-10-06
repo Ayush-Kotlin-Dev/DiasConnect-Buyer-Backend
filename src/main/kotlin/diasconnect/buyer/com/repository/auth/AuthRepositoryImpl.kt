@@ -22,7 +22,7 @@ class AuthRepositoryImpl(
         val createdUser = userDao.createUser(params.name, params.email, params.password)
             ?: throw IllegalStateException("Failed to create user")
 
-        val createdCart = cartDao.createCart(createdUser.id)
+        val createdCart = cartDao.createOrGetCart(createdUser.id)
             //TODO return cart id in response to be used in the frontend
         val token = generateToken(createdUser.email)
 
@@ -33,7 +33,8 @@ class AuthRepositoryImpl(
                 token = token,
                 created = createdUser.createdAt,
                 updated = createdUser.updatedAt,
-                email = createdUser.email
+                email = createdUser.email,
+                cartId = createdCart.toString()
             )
         )
     }
@@ -46,8 +47,10 @@ class AuthRepositoryImpl(
             throw IllegalArgumentException("Invalid password")
         }
 
-        val token = generateToken(user.email)
 
+        val token = generateToken(user.email)
+        val cart = cartDao.createOrGetCart(user.id)
+        println("cart id: $cart")
         return AuthResponse(
             data = AuthResponseData(
                 id = user.id.toString(),
@@ -55,7 +58,8 @@ class AuthRepositoryImpl(
                 token = token,
                 created = user.createdAt,
                 updated = user.updatedAt,
-                email = user.email
+                email = user.email,
+                cartId = cart.toString()
             )
         )
     }

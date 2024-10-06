@@ -7,7 +7,7 @@ import kotlinx.html.B
 import java.math.BigDecimal
 
 interface CartRepository {
-    suspend fun createCart(userId: Long): Long
+    suspend fun createOrGetCart(userId: Long): Long
     suspend fun getActiveCartByUserId(userId: Long): Cart?
     suspend fun getCartById(cartId: Long): Cart?
     suspend fun addItemToCart(cartId: Long, productId: Long, quantity: Int, price: Float): Long

@@ -24,7 +24,7 @@ data class UserRow(
     val email: String,
     val passwordHash: String,
     val createdAt: String,
-    val updatedAt: String
+    val updatedAt: String,
 )
 
 
