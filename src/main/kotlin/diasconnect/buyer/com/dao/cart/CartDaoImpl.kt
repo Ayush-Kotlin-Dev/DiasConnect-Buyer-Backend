@@ -189,8 +189,8 @@ class CartDaoImpl : CartDao {
         val cartId = row[CartTable.id]
         val items = getCartItems(cartId)
         return Cart(
-            id = cartId,
-            userId = row[CartTable.userId],
+            id = cartId.toString(),
+            userId = row[CartTable.userId].toString(),
             status = row[CartTable.status],
             total = row[CartTable.total].toString(),
             currency = row[CartTable.currency],
@@ -203,9 +203,9 @@ class CartDaoImpl : CartDao {
 
     private fun toCartItem(row: ResultRow): CartItem =
         CartItem(
-            id = row[CartItemTable.id],
-            cartId = row[CartItemTable.cartId],
-            productId = row[CartItemTable.productId],
+            id = row[CartItemTable.id].toString(),
+            cartId = row[CartItemTable.cartId].toString(),
+            productId = row[CartItemTable.productId].toString(),
             quantity = row[CartItemTable.quantity],
             price = row[CartItemTable.price].toString(),
             createdAt = row[CartItemTable.createdAt].toString(),
