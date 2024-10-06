@@ -23,8 +23,8 @@ class CartRepositoryImpl(
         return cartDao.getCartById(cartId)
     }
 
-    override suspend fun addItemToCart(cartId: Long, productId: Long, quantity: Int, price: BigDecimal): Long {
-        return cartDao.addItemToCart(cartId, productId, quantity, price)
+    override suspend fun addItemToCart(cartId: Long, productId: Long, quantity: Int, price: Float): Long {
+        return cartDao.addItemToCart(cartId, productId, quantity,price)
     }
 
     override suspend fun updateCartItemQuantity(cartItemId: Long, quantity: Int): Boolean {

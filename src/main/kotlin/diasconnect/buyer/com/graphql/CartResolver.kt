@@ -29,10 +29,10 @@ class CartMutation(private val cartRepository: CartRepository) : Mutation {
     private val logger = LoggerFactory.getLogger(CartMutation::class.java)
 
     @GraphQLDescription("Create a new cart or return existing active cart ID for a user")
-    suspend fun createOrGetCart( userId: String): Long {
+    suspend fun createOrGetCart( userId: Long): Long {
         logger.info("Attempting to create or get cart for user: $userId")
         try {
-            val cartId = cartRepository.createCart(userId.toLong())
+            val cartId = cartRepository.createCart(userId)
             logger.info("Successfully created/retrieved cart ID: $cartId for user: $userId")
             return cartId
         } catch (e: Exception) {
@@ -42,12 +42,12 @@ class CartMutation(private val cartRepository: CartRepository) : Mutation {
     }
     @GraphQLDescription("Add an item to a cart")
     suspend fun addItemToCart(
-        cartId: String,
-        productId: String,
+        cartId: Long,
+        productId: Long,
         quantity: Int,
         price: String
     ): Long {
-        return cartRepository.addItemToCart(cartId.toLong(), productId.toLong(), quantity, price.toBigDecimal())
+        return cartRepository.addItemToCart(cartId, productId, quantity, price.toFloat())
     }
 
     @GraphQLDescription("Update the quantity of a cart item")

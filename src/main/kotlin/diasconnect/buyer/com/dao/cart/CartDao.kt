@@ -8,7 +8,7 @@ interface CartDao {
     suspend fun createCart(userId: Long): Long
     suspend fun getActiveCartByUserId(userId: Long): Cart?
     suspend fun getCartById(cartId: Long): Cart?
-    suspend fun addItemToCart(cartId: Long, productId: Long, quantity: Int, price: BigDecimal): Long
+    suspend fun addItemToCart(cartId: Long, productId: Long, quantity: Int, price: Float): Long
     suspend fun updateCartItemQuantity(cartItemId: Long, quantity: Int): Boolean
     suspend fun removeCartItem(cartItemId: Long): Boolean
     suspend fun getCartItems(cartId: Long): List<CartItem>

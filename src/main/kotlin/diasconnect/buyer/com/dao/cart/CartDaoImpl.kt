@@ -1,19 +1,17 @@
 package diasconnect.buyer.com.dao.cart
 
 import diasconnect.buyer.com.dao.DatabaseFactory.dbQuery
+import diasconnect.buyer.com.dao.product.ProductsTable
 import diasconnect.buyer.com.model.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.times
 import org.jetbrains.exposed.sql.sum
 import diasconnect.buyer.com.util.CurrentDateTime
+import diasconnect.buyer.com.util.IdGenerator
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
-import java.math.RoundingMode
-import org.jetbrains.exposed.sql.sum
-import org.jetbrains.exposed.sql.transactions.transaction
-import java.lang.Float.sum
 
 class CartDaoImpl : CartDao {
     private val logger = LoggerFactory.getLogger(CartDaoImpl::class.java)
@@ -23,9 +21,10 @@ class CartDaoImpl : CartDao {
         try {
             val now = CurrentDateTime()
             val cartId = CartTable.insert {
+                it[CartTable.id] = IdGenerator.generateId()
                 it[CartTable.userId] = userId
                 it[status] = CartStatus.ACTIVE
-                it[total] = BigDecimal.ZERO
+                it[total] = 0.0f
                 it[currency] = "USD"
                 it[createdAt] = now
                 it[updatedAt] = now
@@ -54,13 +53,15 @@ class CartDaoImpl : CartDao {
     }
 
     override suspend fun getActiveCartByUserId(userId: Long): Cart? = dbQuery {
-        CartTable.select { (CartTable.userId eq userId) and (CartTable.status eq CartStatus.ACTIVE) }
-            .singleOrNull()?.let { toCart(it) }
+        CartTable
+            .select { (CartTable.userId eq userId) and (CartTable.status eq CartStatus.ACTIVE) }
+            .singleOrNull()?.let { toCartWithProducts(it) }
     }
+
 
     override suspend fun getCartById(cartId: Long): Cart? = dbQuery {
         CartTable.select { CartTable.id eq cartId }
-            .singleOrNull()?.let { toCart(it) }
+            .singleOrNull()?.let { toCartWithProducts(it) }
     }
 
 
@@ -68,7 +69,7 @@ class CartDaoImpl : CartDao {
         cartId: Long,
         productId: Long,
         quantity: Int,
-        price: BigDecimal
+        price: Float
     ): Long = dbQuery {
         try {
             val now = CurrentDateTime()
@@ -143,8 +144,21 @@ class CartDaoImpl : CartDao {
     }
 
     override suspend fun getCartItems(cartId: Long): List<CartItem> = dbQuery {
-        CartItemTable.select { CartItemTable.cartId eq cartId }
-            .map { toCartItem(it) }
+        (CartItemTable innerJoin ProductsTable)
+            .select { CartItemTable.cartId eq cartId }
+            .map { row ->
+                CartItem(
+                    id = row[CartItemTable.id],
+                    cartId = row[CartItemTable.cartId],
+                    productId = row[CartItemTable.productId],
+                    quantity = row[CartItemTable.quantity],
+                    price = row[CartItemTable.price],
+                    createdAt = row[CartItemTable.createdAt].toString(),
+                    updatedAt = row[CartItemTable.updatedAt].toString(),
+                    productName = row[ProductsTable.name],
+                    productDescription = row[ProductsTable.description]
+                )
+            }
     }
 
     override suspend fun clearCart(cartId: Long): Boolean = dbQuery {
@@ -163,36 +177,50 @@ class CartDaoImpl : CartDao {
     }
 
     override suspend fun getCartItemById(cartItemId: Long): CartItem? = dbQuery {
-        CartItemTable.select { CartItemTable.id eq cartItemId }
-            .singleOrNull()?.let { toCartItem(it) }
+        (CartItemTable innerJoin ProductsTable)
+            .select { CartItemTable.id eq cartItemId }
+            .singleOrNull()?.let { row ->
+                CartItem(
+                    id = row[CartItemTable.id],
+                    cartId = row[CartItemTable.cartId],
+                    productId = row[CartItemTable.productId],
+                    quantity = row[CartItemTable.quantity],
+                    price = row[CartItemTable.price],
+                    createdAt = row[CartItemTable.createdAt].toString(),
+                    updatedAt = row[CartItemTable.updatedAt].toString(),
+                    productName = row[ProductsTable.name],
+                    productDescription = row[ProductsTable.description]
+                )
+            }
     }
 
     private fun updateCartTotal(cartId: Long) {
         val now = CurrentDateTime()
 
+        // Calculate total using Float for price and Int for quantity
         val total = CartItemTable
-            .slice((CartItemTable.price * CartItemTable.quantity.castTo<BigDecimal>(DecimalColumnType(10, 2))).sum())
+            .slice((CartItemTable.price * CartItemTable.quantity.castTo(FloatColumnType())).sum())
             .select { CartItemTable.cartId eq cartId }
             .singleOrNull()
-            ?.get((CartItemTable.price * CartItemTable.quantity.castTo<BigDecimal>(DecimalColumnType(10, 2))).sum())
-            ?: BigDecimal.ZERO
+            ?.get((CartItemTable.price * CartItemTable.quantity.castTo(FloatColumnType())).sum())
+            ?: 0.0f
 
+        // Update CartTable with the computed total
         CartTable.update({ CartTable.id eq cartId }) {
-            it[CartTable.total] = total.setScale(2, RoundingMode.HALF_UP)
+            it[CartTable.total] = total
             it[updatedAt] = now
         }
 
         logger.info("Updated cart total for cartId=$cartId to $total")
     }
-
-    private suspend fun toCart(row: ResultRow): Cart {
+    private suspend fun toCartWithProducts(row: ResultRow): Cart {
         val cartId = row[CartTable.id]
-        val items = getCartItems(cartId)
+        val items = getCartItemsWithProducts(cartId)
         return Cart(
-            id = cartId.toString(),
-            userId = row[CartTable.userId].toString(),
+            id = cartId,
+            userId = row[CartTable.userId],
             status = row[CartTable.status],
-            total = row[CartTable.total].toString(),
+            total = row[CartTable.total],
             currency = row[CartTable.currency],
             createdAt = row[CartTable.createdAt].toString(),
             updatedAt = row[CartTable.updatedAt].toString(),
@@ -201,14 +229,21 @@ class CartDaoImpl : CartDao {
         )
     }
 
-    private fun toCartItem(row: ResultRow): CartItem =
-        CartItem(
-            id = row[CartItemTable.id].toString(),
-            cartId = row[CartItemTable.cartId].toString(),
-            productId = row[CartItemTable.productId].toString(),
-            quantity = row[CartItemTable.quantity],
-            price = row[CartItemTable.price].toString(),
-            createdAt = row[CartItemTable.createdAt].toString(),
-            updatedAt = row[CartItemTable.updatedAt].toString()
-        )
+    private fun getCartItemsWithProducts(cartId: Long): List<CartItem> {
+        return (CartItemTable innerJoin ProductsTable)
+            .select { CartItemTable.cartId eq cartId }
+            .map { row ->
+                CartItem(
+                    id = row[CartItemTable.id],
+                    cartId = row[CartItemTable.cartId],
+                    productId = row[CartItemTable.productId],
+                    quantity = row[CartItemTable.quantity],
+                    price = row[CartItemTable.price],
+                    createdAt = row[CartItemTable.createdAt].toString(),
+                    updatedAt = row[CartItemTable.updatedAt].toString(),
+                    productName = row[ProductsTable.name],
+                    productDescription = row[ProductsTable.description]
+                )
+            }
+    }
 }

@@ -15,14 +15,14 @@ class BuyerProductRepositoryImpl(
     override suspend fun searchProducts(query: String): List<Product> = dao.searchProducts(query).map { it.toProduct() }
 
     private fun ProductRow.toProduct(): Product = Product(
-        id = id.toString(),
+        id = id,
         name = name,
         price = price,
         description = description,
         stock = stock,
         images = images,
-        categoryId = categoryId.toString(),
-        sellerId = sellerId.toString(),
+        categoryId = categoryId,
+        sellerId = sellerId,
         createdAt = createdAt,
         updatedAt = updatedAt
     )

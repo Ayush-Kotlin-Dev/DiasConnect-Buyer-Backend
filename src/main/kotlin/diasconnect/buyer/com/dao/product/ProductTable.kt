@@ -12,7 +12,7 @@ object ProductsTable : Table("products") {
     val stock = integer("stock")
     val categoryId = long("category_id")
     val sellerId = long("seller_id")
-//    val sku = varchar("sku", 100).nullable() // Optional SKU
+//    val sku = varchar("sku", 100).nullable() // Optional SKU // Stock Keeping Unit
 //    val discount = float("discount").nullable() // Optional discount
 //    val rating = float("rating").nullable() // Optional average rating
 //    val weight = float("weight").nullable() // Optional weight

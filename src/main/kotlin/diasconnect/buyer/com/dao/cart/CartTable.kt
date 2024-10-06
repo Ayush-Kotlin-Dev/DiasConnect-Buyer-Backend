@@ -11,7 +11,7 @@ object CartTable : Table("carts") {
     val id = long("id").autoIncrement()
     val userId = long("user_id")
     val status = enumerationByName("status", 20, CartStatus::class)
-    val total = decimal("total", precision = 10, scale = 2).default(BigDecimal.ZERO)
+    val total = float("total")
     val currency = varchar("currency", 3).default("USD")
     val createdAt = datetime("created_at").defaultExpression(CurrentDateTime())
     val updatedAt = datetime("updated_at").defaultExpression(CurrentDateTime())
@@ -31,9 +31,9 @@ enum class CartStatus {
 object CartItemTable : Table("cart_items") {
     val id = long("id").autoIncrement()
     val cartId = long("cart_id").references(CartTable.id)
-    val productId = long("product_id")
+    val productId = long("product_id").references(ProductsTable.id)
     val quantity = integer("quantity")
-    val price = decimal("price", precision = 10, scale = 2)
+    val price = float("price")
     val createdAt = datetime("created_at").defaultExpression(CurrentDateTime())
     val updatedAt = datetime("updated_at").defaultExpression(CurrentDateTime())
     override val primaryKey = PrimaryKey(id)
@@ -42,6 +42,9 @@ object CartItemTable : Table("cart_items") {
 data class CartRow(
     val id: Long,
     val userId: Long,
+    val status: CartStatus,
+    val total: Float,
+    val currency: String,
     val createdAt: String,
     val updatedAt: String
 )

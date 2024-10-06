@@ -1,12 +1,13 @@
 package diasconnect.buyer.com.model
 
 import diasconnect.buyer.com.dao.cart.CartStatus
+import java.math.BigDecimal
 
 data class Cart(
-    val id: String,
-    val userId: String,
+    val id: Long,
+    val userId: Long,
     val status: CartStatus,
-    val total: String,
+    val total: Float,
     val currency: String,
     val createdAt: String  ,
     val updatedAt: String,
@@ -17,11 +18,13 @@ data class Cart(
 
 
 data class CartItem(
-    val id: String,
-    val cartId: String,
-    val productId: String,
+    val id: Long,
+    val cartId: Long,
+    val productId: Long,
     val quantity: Int,
-    val price: String,
+    val price: Float,
+    val productName: String,
+    val productDescription: String,
     val createdAt: String,
     val updatedAt: String
 )

@@ -9,10 +9,10 @@ class ProductQuery(
 ) : Query {
     suspend fun products(): List<Product> = productRepository.getAllProducts()
 
-    suspend fun product(id: String): Product? = productRepository.getProductById(id.toLong())
+    suspend fun product(id: Long): Product? = productRepository.getProductById(id)
 
-    suspend fun productsByCategory(categoryId: String): List<Product> =
-        productRepository.getProductsByCategory(categoryId.toLong())
+    suspend fun productsByCategory(categoryId: Long): List<Product> =
+        productRepository.getProductsByCategory(categoryId)
 
     suspend fun searchProducts(query: String): List<Product> =
         productRepository.searchProducts(query)
