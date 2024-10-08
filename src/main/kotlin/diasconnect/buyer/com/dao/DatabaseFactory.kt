@@ -5,6 +5,8 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import diasconnect.buyer.com.dao.cart.CartItemTable
 import diasconnect.buyer.com.dao.cart.CartTable
+import diasconnect.buyer.com.dao.order.OrderItemsTable
+import diasconnect.buyer.com.dao.order.OrdersTable
 import diasconnect.buyer.com.dao.user.UserTable
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.Database
@@ -20,7 +22,9 @@ object DatabaseFactory {
             SchemaUtils.create(
                 UserTable,
                 CartTable,
-                CartItemTable
+                CartItemTable,
+                OrdersTable,
+                OrderItemsTable
             )
         }
     }

@@ -4,10 +4,10 @@ import graphql.language.IntValue
 import graphql.language.StringValue
 import graphql.schema.*
 
-object LongScalar : Coercing<Long, Long> {
-    override fun serialize(dataFetcherResult: Any): Long = when (dataFetcherResult) {
-        is Long -> dataFetcherResult
-        is Int -> dataFetcherResult.toLong()
+object LongScalar : Coercing<Long, String> {
+    override fun serialize(dataFetcherResult: Any): String = when (dataFetcherResult) {
+        is Long -> dataFetcherResult.toString()
+        is Int -> dataFetcherResult.toLong().toString()
         else -> throw CoercingSerializeException("Expected a Long or Int")
     }
 
@@ -20,12 +20,13 @@ object LongScalar : Coercing<Long, Long> {
 
     override fun parseLiteral(input: Any): Long = when (input) {
         is IntValue -> input.value.toLong()
-        else -> throw CoercingParseLiteralException("Expected an IntValue")
+        is StringValue -> input.value.toLong()
+        else -> throw CoercingParseLiteralException("Expected an IntValue or StringValue")
     }
 }
 
 val GraphQLLong = GraphQLScalarType.newScalar()
     .name("Long")
-    .description("A custom scalar that handles long integers")
+    .description("A custom scalar that handles long integers as strings to preserve precision")
     .coercing(LongScalar)
     .build()
