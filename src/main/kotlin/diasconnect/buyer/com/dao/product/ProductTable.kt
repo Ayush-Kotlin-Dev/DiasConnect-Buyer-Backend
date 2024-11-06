@@ -42,3 +42,4 @@ data class ProductRow(
     val createdAt: String,
     val updatedAt: String
 )
+

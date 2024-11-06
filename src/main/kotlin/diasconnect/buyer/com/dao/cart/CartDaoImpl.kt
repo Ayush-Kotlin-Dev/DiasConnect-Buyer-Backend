@@ -1,6 +1,7 @@
 package diasconnect.buyer.com.dao.cart
 
 import diasconnect.buyer.com.dao.DatabaseFactory.dbQuery
+import diasconnect.buyer.com.dao.product.ProductImagesTable
 import diasconnect.buyer.com.dao.product.ProductsTable
 import diasconnect.buyer.com.model.*
 import org.jetbrains.exposed.sql.*
@@ -62,6 +63,23 @@ class CartDaoImpl : CartDao {
         CartTable.select { CartTable.id eq cartId }
             .singleOrNull()?.let { toCartWithProducts(it) }
     }
+
+    private suspend fun toCartWithProducts(row: ResultRow): Cart {
+        val cartId = row[CartTable.id]
+        val items = getCartItems(cartId)
+        return Cart(
+            id = cartId,
+            userId = row[CartTable.userId],
+            status = row[CartTable.status],
+            total = row[CartTable.total],
+            currency = row[CartTable.currency],
+            createdAt = row[CartTable.createdAt].toString(),
+            updatedAt = row[CartTable.updatedAt].toString(),
+            expiresAt = row[CartTable.expiresAt].toString(),
+            items = items
+        )
+    }
+
 
 
     override suspend fun addItemToCart(
@@ -146,18 +164,26 @@ class CartDaoImpl : CartDao {
         (CartItemTable innerJoin ProductsTable)
             .select { CartItemTable.cartId eq cartId }
             .map { row ->
+                val productId = row[CartItemTable.productId]
                 CartItem(
                     id = row[CartItemTable.id],
                     cartId = row[CartItemTable.cartId],
-                    productId = row[CartItemTable.productId],
+                    productId = productId,
                     quantity = row[CartItemTable.quantity],
                     price = row[CartItemTable.price],
                     createdAt = row[CartItemTable.createdAt].toString(),
                     updatedAt = row[CartItemTable.updatedAt].toString(),
                     productName = row[ProductsTable.name],
-                    productDescription = row[ProductsTable.description]
+                    productDescription = row[ProductsTable.description],
+                    productImages = getProductImages(productId) // Add this line
                 )
             }
+    }
+
+    private fun getProductImages(productId: Long): List<String> {
+        return ProductImagesTable
+            .select { ProductImagesTable.productId eq productId }
+            .map { it[ProductImagesTable.imageUrl] }
     }
 
     override suspend fun clearCart(cartId: Long): Boolean = dbQuery {
@@ -188,7 +214,8 @@ class CartDaoImpl : CartDao {
                     createdAt = row[CartItemTable.createdAt].toString(),
                     updatedAt = row[CartItemTable.updatedAt].toString(),
                     productName = row[ProductsTable.name],
-                    productDescription = row[ProductsTable.description]
+                    productDescription = row[ProductsTable.description],
+                    productImages = emptyList()
                 )
             }
     }
@@ -212,37 +239,7 @@ class CartDaoImpl : CartDao {
 
         logger.info("Updated cart total for cartId=$cartId to $total")
     }
-    private suspend fun toCartWithProducts(row: ResultRow): Cart {
-        val cartId = row[CartTable.id]
-        val items = getCartItemsWithProducts(cartId)
-        return Cart(
-            id = cartId,
-            userId = row[CartTable.userId],
-            status = row[CartTable.status],
-            total = row[CartTable.total],
-            currency = row[CartTable.currency],
-            createdAt = row[CartTable.createdAt].toString(),
-            updatedAt = row[CartTable.updatedAt].toString(),
-            expiresAt = row[CartTable.expiresAt].toString(),
-            items = items
-        )
-    }
 
-    private fun getCartItemsWithProducts(cartId: Long): List<CartItem> {
-        return (CartItemTable innerJoin ProductsTable)
-            .select { CartItemTable.cartId eq cartId }
-            .map { row ->
-                CartItem(
-                    id = row[CartItemTable.id],
-                    cartId = row[CartItemTable.cartId],
-                    productId = row[CartItemTable.productId],
-                    quantity = row[CartItemTable.quantity],
-                    price = row[CartItemTable.price],
-                    createdAt = row[CartItemTable.createdAt].toString(),
-                    updatedAt = row[CartItemTable.updatedAt].toString(),
-                    productName = row[ProductsTable.name],
-                    productDescription = row[ProductsTable.description]
-                )
-            }
-    }
+
+
 }

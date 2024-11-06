@@ -31,21 +31,6 @@ class OrderMutation(private val orderRepository: OrderRepository) : Mutation {
     }
 }
 
-fun diasconnect.buyer.com.dao.order.OrderRow.toOrderType(items: List<OrderItemType> = emptyList()): OrderType {
-    return OrderType(
-        id = id,
-        userId = userId,
-        status = status,
-        total = total,
-        currency = currency,
-        shippingAddress = shippingAddress,
-        paymentMethod = paymentMethod,
-        createdAt = createdAt,
-        updatedAt = updatedAt,
-        items = items
-    )
-}
-
 fun OrderWithItems.toOrderType(): OrderType {
     return OrderType(
         id = order.id,

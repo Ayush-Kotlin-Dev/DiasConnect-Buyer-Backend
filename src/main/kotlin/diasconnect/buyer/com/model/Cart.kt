@@ -25,6 +25,7 @@ data class CartItem(
     val price: Float,
     val productName: String,
     val productDescription: String,
+    val productImages: List<String>,
     val createdAt: String,
-    val updatedAt: String
+    val updatedAt: String,
 )
